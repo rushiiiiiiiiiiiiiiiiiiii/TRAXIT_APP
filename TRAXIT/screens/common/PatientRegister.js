@@ -20,7 +20,7 @@ export default function PatientRegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     try {
-      const res = await axios.post('http://192.168.0.124:8000/patreg', form);
+      const res = await axios.post('http://192.168.0.107:8000/patreg', form);
       console.log(res.data);
       if (res.data.success) {
         // await AsyncStorage.setItem('userRole', 'Patient');
@@ -36,7 +36,7 @@ export default function PatientRegisterScreen({ navigation }) {
   };
 
   return (
-    <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.container}>
+    <LinearGradient colors={['#11998e', '#38ef7d']} style={styles.container}>
       <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

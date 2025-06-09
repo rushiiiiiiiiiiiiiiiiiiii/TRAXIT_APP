@@ -21,7 +21,7 @@ export default function DoctorRegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     try {
-      const res = await axios.post('http://192.168.0.124:8000/docreg', form);
+      const res = await axios.post('http://192.168.0.107:8000/docreg', form);
       console.log(res.data);
       if (res.data.success) {
         // await AsyncStorage.setItem('userRole', 'Doctor');

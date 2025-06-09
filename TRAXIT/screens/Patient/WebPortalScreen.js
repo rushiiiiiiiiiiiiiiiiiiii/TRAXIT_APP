@@ -19,7 +19,7 @@ export default function WebPortalScreen({ navigation }) {
 
   return (
     <LinearGradient
-      colors={['#4facfe', '#00f2fe']}
+      colors={['#11998e', '#38ef7d']}
       style={styles.gradientContainer}
     >
       <SafeAreaView style={styles.safeArea}>
@@ -40,7 +40,7 @@ export default function WebPortalScreen({ navigation }) {
         <View style={styles.webViewWrapper}>
           {webLoading && (
             <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="#00f2fe" />
+              <ActivityIndicator size="large" color="#11998e" />
             </View>
           )}
           <WebView

@@ -27,7 +27,7 @@ export default function DoctorStack({ navigation }) {
           Alert.alert('Error', 'User ID not found');
           return;
         }
-        const result = await axios.get(`http://192.168.0.124:8000/getdoc/${id}`);
+        const result = await axios.get(`http://192.168.0.107:8000/getdoc/${id}`);
         if (result.data.success) {
           setData(result.data.data);
         } else {

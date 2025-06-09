@@ -105,7 +105,7 @@ export default function ReminderScreen() {
   };
 
   return (
-    <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.container}>
+    <LinearGradient colors={['#11998e', '#38ef7d']} style={styles.container}>
       <Text style={styles.title}>Traxit Temperature Reminder</Text>
 
       <CountdownCircleTimer

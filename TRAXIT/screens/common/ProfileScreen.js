@@ -18,13 +18,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function ProfileScreen({ navigation }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const id = await AsyncStorage.getItem('userid');
         const role = await AsyncStorage.getItem('Role');
-
+        setRole(role);
         if (!id || !role) {
           console.warn('Missing user ID or role in storage');
           return;
@@ -32,13 +33,22 @@ export default function ProfileScreen({ navigation }) {
 
         const url =
           role === 'patient'
-            ? `http://192.168.0.124:8000/getpat/${id}`
-            : `http://192.168.0.124:8000/getdoc/${id}`;
+            ? `http://192.168.0.107:8000/getpat/${id}`
+            : `http://192.168.0.107:8000/getdoc/${id}`;
 
         const response = await axios.get(url);
 
         if (response.data.success) {
-          setData({ ...response.data.data, role });
+          const baseData = { ...response.data.data, role };
+
+          if (role === 'patient' && baseData.drid) {
+            const doctorRes = await axios.get(`http://192.168.0.107:8000/getdoc/${baseData.drid}`);
+            baseData.doctorName = doctorRes.data.success
+              ? doctorRes.data.data.name
+              : 'Unknown Doctor';
+          }
+
+          setData(baseData);
         } else {
           console.warn('Profile fetch unsuccessful:', response.data.message);
         }
@@ -48,14 +58,17 @@ export default function ProfileScreen({ navigation }) {
         setLoading(false);
       }
     };
-      
 
     fetchProfile();
   }, []);
 
+  const gradients = {
+    patient: ['#11998e', '#38ef7d'],
+    doctor: ['#4facfe', '#00f2fe'],
+  };
+
   const logout = async () => {
     await AsyncStorage.multiRemove(['Role', 'userid']);
-
     navigation.dispatch(
       CommonActions.reset({
         index: 0,
@@ -66,7 +79,7 @@ export default function ProfileScreen({ navigation }) {
 
   if (loading || !data) {
     return (
-      <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.container}>
+      <LinearGradient colors={role=="patient"?['#11998e', '#38ef7d'] : ['#4facfe', '#00f2fe']} style={styles.container}>
         <StatusBar barStyle="light-content" />
         <ActivityIndicator size="large" color="#fff" style={{ marginTop: 100 }} />
         <Text style={{ color: '#fff', textAlign: 'center', marginTop: 20 }}>
@@ -77,7 +90,7 @@ export default function ProfileScreen({ navigation }) {
   }
 
   return (
-    <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.container}>
+    <LinearGradient colors={gradients[role]} style={styles.container}>
       <StatusBar barStyle="light-content" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
@@ -89,28 +102,33 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.role}>{data.role}</Text>
 
           <View style={styles.infoCard}>
-            <InfoRow icon="📞" label="Phone" value={`${data.phone}`} />
-            <InfoRow icon="🎂" label="Age" value={data.age} />
-
+            <InfoRow icon="📞" label="Phone" value={`${data.phone}`} role={role} />
+            <InfoRow icon="🎂" label="Age" value={data.age} role={role} />
             {data.role === 'patient' ? (
               <>
-                <InfoRow icon="🩺" label="Disease" value={data.disease} />
-                <InfoRow icon="👨‍⚕️" label="Doctor Code" value="Dr. Smith" />
+                <InfoRow icon="🩺" label="Disease" value={data.disease} role={role} />
+                <InfoRow icon="👨‍⚕️" label="Doctor" value={data.doctorName || data.drid} role={role} />
               </>
             ) : (
-              <InfoRow
-                icon="🩺"
-                label="Specialization"
-                value={data.specialization}
-              />
+              <InfoRow icon="🩺" label="Specialization" value={data.specialization} role={role} />
             )}
           </View>
-{/* 
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Edit Profile</Text>
-          </TouchableOpacity> */}
-          <TouchableOpacity style={styles.button} onPress={logout}>
-            <Text style={styles.buttonText}>Logout</Text>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              role === 'patient' && { backgroundColor: '#11998e' },
+            ]}
+            onPress={logout}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                role === 'patient' && { color: '#fff' },
+              ]}
+            >
+              Logout
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -118,13 +136,15 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-function InfoRow({ icon, label, value }) {
+function InfoRow({ icon, label, value, role }) {
+  const isPatient = role === 'patient';
+
   return (
     <View style={styles.infoRow}>
-      <Text style={styles.icon}>{icon}</Text>
+      <Text style={[styles.icon, isPatient && { color: '#11998e' }]}>{icon}</Text>
       <View>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.value}>{value}</Text>
+        <Text style={[styles.label, isPatient && { color: '#00695c' }]}>{label}</Text>
+        <Text style={[styles.value, isPatient && { color: '#004d40' }]}>{value}</Text>
       </View>
     </View>
   );
@@ -173,7 +193,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     width: '100%',
-    backgroundColor: '#e0f7fa',
+    backgroundColor: '#ffffff',
     paddingVertical: 18,
     paddingHorizontal: 20,
     borderRadius: 20,

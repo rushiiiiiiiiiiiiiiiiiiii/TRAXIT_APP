@@ -14,7 +14,7 @@ export default function PatientDashboard({ navigation }) {
     const getProfile = async () => {
       const id = await AsyncStorage.getItem('userid');
       try {
-        const result = await axios.get(`http://192.168.0.124:8000/getpat/${id}`);
+        const result = await axios.get(`http://192.168.0.107:8000/getpat/${id}`);
         if (result.data.success) {
           setData(result.data.data);
           console.log(result.data?.data)
@@ -27,7 +27,7 @@ export default function PatientDashboard({ navigation }) {
   }, []);
 
   return (
-    <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.container}>
+    <LinearGradient colors={['#11998e', '#38ef7d']} style={styles.container}>
       <StatusBar barStyle="light-content" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Profile Icon */}
@@ -58,12 +58,12 @@ export default function PatientDashboard({ navigation }) {
               onPress={() => navigation.navigate('Web')}
             >
               <Ionicons name="globe-outline" size={30} color="#4facfe" />
-              <Text style={styles.cardText}>Web Portal</Text>
+              <Text style={styles.cardText}>Health Portal</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.card}
-              onPress={() => navigation.navigate('Reminder')}
+              onPress={() => navigation.navigate('NotificationScreen')}
             >
               <Ionicons name="notifications-outline" size={30} color="#4facfe" />
               <Text style={styles.cardText}>Notifications</Text>
@@ -71,10 +71,10 @@ export default function PatientDashboard({ navigation }) {
 
             <TouchableOpacity
               style={styles.card}
-              onPress={() => navigation.navigate('Graph')}
+              onPress={() => navigation.navigate('Reminder')}
             >
-              <Ionicons name="bar-chart-outline" size={30} color="#4facfe" />
-              <Text style={styles.cardText}>Health Graphs</Text>
+              <Ionicons name="hourglass-outline" size={30} color="#4facfe" />
+              <Text style={styles.cardText}>Reminders</Text>
             </TouchableOpacity>
           </View>
         </View>

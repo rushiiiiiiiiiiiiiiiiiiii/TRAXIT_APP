@@ -16,8 +16,10 @@ import {
 } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
+import { Linking } from 'react-native';
 
-export default function PatientDetail({ route }) {
+
+export default function PatientDetail({ route, navigation }) {
   const { id } = route.params;
 
   const [patientInfo, setPatientInfo] = useState(null);
@@ -35,7 +37,7 @@ export default function PatientDetail({ route }) {
   useEffect(() => {
     const fetchPatientData = async () => {
       try {
-        const response = await axios.get(`http://192.168.0.124:8000/patient/${id}`);
+        const response = await axios.get(`http://192.168.0.107:8000/patient/${id}`);
         const data = response.data;
 
         setPatientInfo(data.patient);
@@ -124,15 +126,25 @@ export default function PatientDetail({ route }) {
         </View>
 
         <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => {
+              if (patientInfo?.phone) {
+                Linking.openURL(`tel:${patientInfo.phone}`);
+              } else {
+                alert('Phone number not available');
+              }
+            }}
+          >
             <Text style={styles.actionIcon}>📞</Text>
             <Text style={styles.actionLabel}>Call</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('PrescriptionScreen', { id })}>
             <Text style={styles.actionIcon}>💊</Text>
             <Text style={styles.actionLabel}>Presc</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('NotesScreen', { id })}>
             <Text style={styles.actionIcon}>📝</Text>
             <Text style={styles.actionLabel}>Notes</Text>
           </TouchableOpacity>
@@ -152,7 +164,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   header: {
-    backgroundColor: '#007ACC',
+    backgroundColor: '#3a8dde',
     paddingVertical: hp('2.5%'),
     alignItems: 'center',
     elevation: 4

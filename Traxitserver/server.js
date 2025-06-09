@@ -183,6 +183,77 @@ app.get('/patient/:id', (req, res) => {
 });
 
 
+// Save prescription
+app.post('/saveprescription', (req, res) => {
+  const { patientId, prescriptions } = req.body;
+
+  if (!patientId || !Array.isArray(prescriptions)) {
+    return res.status(400).send({ success: false, message: 'Invalid data' });
+  }
+
+  const values = prescriptions.map(p => [patientId, p.text, p.time]);
+
+  const sql = 'INSERT INTO prescriptions (patient_id, text, timestamp) VALUES ?';
+
+  conn.query(sql, [values], (err, result) => {
+    if (err) {
+      console.error('❌ Error saving prescriptions:', err);
+      return res.status(500).send({ success: false, message: 'Database error' });
+    }
+    res.send({ success: true, message: 'Prescriptions saved successfully' });
+  });
+});
+
+
+// Save note
+app.post('/savenote', (req, res) => {
+  const { patientId, note } = req.body;
+
+  if (!patientId || !note || note.trim() === '') {
+    return res.status(400).send({ success: false, message: 'Note is required' });
+  }
+
+  const sql = 'INSERT INTO notes (patient_id, text) VALUES (?, ?)';
+  conn.query(sql, [patientId, note.trim()], (err, result) => {
+    if (err) {
+      console.error('❌ Error saving note:', err);
+      return res.status(500).send({ success: false, message: 'Database error' });
+    }
+    res.send({ success: true, message: 'Note saved successfully' });
+  });
+});
+
+
+app.get('/getprescriptions/:patientId', (req, res) => {
+  const { patientId } = req.params;
+
+  const sql = 'SELECT text, timestamp FROM prescriptions WHERE patient_id = ? ORDER BY timestamp DESC';
+
+  conn.query(sql, [patientId], (err, result) => {
+    if (err) {
+      console.error('❌ Error fetching prescriptions:', err);
+      return res.status(500).send({ success: false, message: 'Database error' });
+    }
+
+    res.send({ success: true, prescriptions: result });
+  });
+});
+app.get('/getnotes/:patientId', (req, res) => {
+  const { patientId } = req.params;
+
+  const sql = 'SELECT text FROM notes WHERE patient_id = ? ORDER BY id DESC';
+  conn.query(sql, [patientId], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching notes:', err);
+      return res.status(500).send({ success: false, message: 'Database error' });
+    }
+    res.send({ success: true, notes: results });
+  });
+});
+
+
 app.listen(8000, () => {
     console.log("🚀 Server running on PORT 8000");
 });
+
+

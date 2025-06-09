@@ -11,31 +11,24 @@ import {
   TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import { AntDesign } from '@expo/vector-icons';
 
-export default function PatientList({ navigation }) {
+export default function ArchivedPatient({ navigation }) {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState('');
   const [filtered, setFiltered] = useState([]);
 
   useEffect(() => {
-    const getPatients = async () => {
-      try {
-        const id = await AsyncStorage.getItem('userid');
-        const result = await axios.post(`http://192.168.0.107:8000/getdrpat/${id}`);
-        if (result.data.success) {
-          setData(result.data.data);
-          setFiltered(result.data.data);
-        } else {
-          console.log('Fetch failed');
-        }
-      } catch (err) {
-        console.log('❌ Error fetching patients:', err);
-      }
-    };
-    getPatients();
+    const dummyData = [
+      { id: 1, name: 'Ravi Kumar', disease: 'Diabetes' },
+      { id: 2, name: 'Sneha Sharma', disease: 'Hypertension' },
+      { id: 3, name: 'Arjun Patel', disease: 'Asthma' },
+      { id: 4, name: 'Priya Joshi', disease: 'Arthritis' },
+      { id: 5, name: 'Kabir Das', disease: 'Heart Disease' },
+    ];
+
+    setData(dummyData);
+    setFiltered(dummyData);
   }, []);
 
   const handleSearch = (text) => {
@@ -61,12 +54,12 @@ export default function PatientList({ navigation }) {
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
         <View style={styles.container}>
-          <Text style={styles.title}>👨‍⚕️ Patients List</Text>
+          <Text style={styles.title}>🗃️ Archived Patients</Text>
 
           <View style={styles.searchContainer}>
             <AntDesign name="search1" size={18} color="#666" style={styles.searchIcon} />
             <TextInput
-              placeholder="Search patient..."
+              placeholder="Search archived patient..."
               placeholderTextColor="#999"
               style={styles.searchInput}
               value={search}
@@ -81,12 +74,12 @@ export default function PatientList({ navigation }) {
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.card}
-                onPress={() => navigation.navigate('PatientDetail', { id: item.id })}
+                onPress={() => navigation.navigate('PatientDetail', { id: item.id, archived: true })}
               >
                 {renderAvatar(item.name)}
                 <View style={styles.cardTextContainer}>
                   <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.disease}>🩺 {item.disease}</Text>
+                  <Text style={styles.disease}>🗂️ {item.disease}</Text>
                 </View>
                 <AntDesign name="right" size={16} color="#007ACC" />
               </TouchableOpacity>

@@ -28,7 +28,7 @@ export default function PatientLoginScreen({ navigation }) {
   const handleLogin = async () => {
     const role = await AsyncStorage.getItem('Role')
     try {
-      const result = await axios.post("http://192.168.0.124:8000/patlog", {
+      const result = await axios.post("http://192.168.0.107:8000/patlog", {
         phone,
         password,
       });
@@ -55,7 +55,7 @@ export default function PatientLoginScreen({ navigation }) {
   };
 
   return (
-    <LinearGradient colors={["#4facfe", "#00f2fe"]} style={styles.container}>
+    <LinearGradient colors={['#11998e', '#38ef7d']} style={styles.container}>
       <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}

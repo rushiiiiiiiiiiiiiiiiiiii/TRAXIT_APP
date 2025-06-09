@@ -19,6 +19,10 @@ import DoctorStack from '../navigation/DoctorStack';
 import PatientDetail from '../screens/Doctor/PatientDetail';
 import AddPatient from '../screens/Doctor/AddPatient';
 import WebPortalScreen from '../screens/Patient/WebPortalScreen';
+import ArchivedPatient from '../screens/Doctor/ArchivedPatient';
+import PrescriptionScreen from '../screens/Doctor/PrescriptionScreen';
+import NotesScreen from '../screens/Doctor/NotesScreen';
+import NotificationScreen from '../screens/Patient/NotificationScreen';
 
 const Stack = createNativeStackNavigator();
 const PERSISTENCE_KEY = 'NAVIGATION_STATE';
@@ -77,6 +81,10 @@ export default function AppNavigator() {
         <Stack.Screen name="PatientList" component={PatientList} />
         <Stack.Screen name="PatientDetail" component={PatientDetail} />
         <Stack.Screen name="AddPatient" component={AddPatient} />
+        <Stack.Screen name="PrescriptionScreen" component={PrescriptionScreen} />
+        <Stack.Screen name="ArchivedPatient" component={ArchivedPatient} />
+        <Stack.Screen name="NotesScreen" component={NotesScreen} />
+        <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
