@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  SafeAreaView,
-  TouchableOpacity,
-  ActivityIndicator
+  View, Text, StyleSheet, StatusBar, SafeAreaView, TouchableOpacity,
+  ActivityIndicator, Alert, Linking, TextInput, Keyboard, Platform
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { RFValue } from 'react-native-responsive-fontsize';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp
-} from 'react-native-responsive-screen';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
-import { Linking } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function PatientDetail({ route, navigation }) {
   const { id } = route.params;
@@ -25,57 +26,199 @@ export default function PatientDetail({ route, navigation }) {
   const [patientInfo, setPatientInfo] = useState(null);
   const [tempData, setTempData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [threshold, setThreshold] = useState('');
+  const [storedThreshold, setStoredThreshold] = useState(null);
+  const [temphgh, setTemhgh] = useState('');
+  const [availableDates, setAvailableDates] = useState([]);
+  const [notifiedToday, setNotifiedToday] = useState(false);
 
-  const dummyData = [
-    { time: '10AM', temp: 98.6 },
-    { time: '12PM', temp: 90.1 },
-    { time: '2PM', temp: 80.7 },
-    { time: '4PM', temp: 93.3 },
-    { time: '6PM', temp: 85.9 }
-  ];
+  const formatDate = date => date.toISOString().split('T')[0];
+  const isToday = date => date.toDateString() === new Date().toDateString();
+
+  // 📣 Local notification function
+  const triggerHighTempNotification = async (temp, threshold) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🌡️ High Temperature Alert!',
+        body: `Temperature ${temp}°F of ${patientInfo.name} exceeded high Temperature ${threshold}°F`,
+        sound: 'default',
+      },
+      trigger: null, // trigger immediately
+    });
+  };
+
+  // const notifyHighTemp = async (thresholdValue) => {
+  //   // Alert.alert('🚨 High Temperature Alert', `Today's temperature exceeded the threshold of ${thresholdValue}°F!`);
+
+  //   try {
+  //     await axios.post('http://192.168.0.106:8000/notifyDoctor', {
+  //       patientId: id,
+  //       threshold: thresholdValue,
+  //       date: formatDate(new Date()),
+  //     });
+  //     console.log('Doctor notified successfully');
+  //   } catch (error) {
+  //     console.error('Notification failed:', error);
+  //     Alert.alert('❌ Notification Error', 'Failed to notify the doctor.');
+  //   }
+  // };
+
+  const registerForPushNotificationsAsync = async () => {
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        Alert.alert('Permission Denied', 'Notification permission is required.');
+        return;
+      }
+
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+        });
+      }
+    } else {
+      Alert.alert('Physical device required for notifications');
+    }
+  };
+
+  const saveThreshold = async () => {
+    const num = parseFloat(threshold);
+    if (isNaN(num)) {
+      return Alert.alert('Invalid input', 'Please enter a numeric value.');
+    }
+    try {
+      await AsyncStorage.setItem(`threshold_${id}`, num.toString());
+      setStoredThreshold(num);
+      Alert.alert('✅ Threshold saved', `${num}°F`);
+      Keyboard.dismiss();
+    } catch (e) {
+      console.error('Threshold save failed:', e);
+      Alert.alert('❌ Error', 'Could not save threshold.');
+    }
+  };
+
+  const loadThreshold = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(`threshold_${id}`);
+      setTemhgh(stored);
+      if (stored) {
+        setStoredThreshold(parseFloat(stored));
+        setThreshold(stored); // 👈 Show in input field
+      }
+    } catch (e) {
+      console.error('Threshold load failed:', e);
+    }
+  };
+
+
+  const changeDate = days => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + days);
+    const formatted = newDate.toDateString();
+
+    if (availableDates.includes(formatted)) {
+      setSelectedDate(newDate);
+      setNotifiedToday(false); // Reset notification for new date
+    } else {
+      Alert.alert('⛔ No data', 'No temperature data available for this date.');
+    }
+  };
 
   useEffect(() => {
-    const fetchPatientData = async () => {
-      try {
-        const response = await axios.get(`http://192.168.0.107:8000/patient/${id}`);
-        const data = response.data;
+    registerForPushNotificationsAsync();
+    loadThreshold();
+    axios
+      .get(`http://192.168.0.106:8000/getavailabledates/${id}`)
+      .then(res => {
+        if (res.data.success) {
+          setAvailableDates(res.data.dates.map(d => new Date(d).toDateString()));
+        }
+      })
+      .catch(err => console.error('Available dates fetch failed:', err));
+  }, [id]);
 
-        setPatientInfo(data.patient);
-        setTempData(data.temperatures || []);
-      } catch (error) {
-        console.error('❌ Error fetching patient details:', error);
-      } finally {
-        setLoading(false);
+  useEffect(() => {
+    const fetchTempData = async () => {
+      try {
+        const dateStr = formatDate(selectedDate);
+        const res = await axios.get(`http://192.168.0.106:8000/gettempdata/${id}?date=${dateStr}`);
+        const raw = res.data.data || [];
+        const processed = raw.map(e => ({
+          time: new Date(e.timestamp).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          temp: parseFloat(e.temprature),
+        }));
+
+        setTempData(processed);
+
+        if (isToday(selectedDate) && storedThreshold != null && !notifiedToday) {
+          const exceeded = processed.find(d => d.temp > storedThreshold);
+          if (exceeded) {
+            setNotifiedToday(true);
+            triggerHighTempNotification(exceeded.temp, storedThreshold);
+            notifyHighTemp(storedThreshold);
+          }
+        }
+      } catch (err) {
+        console.error('Temperature fetch failed:', err);
+        Alert.alert('❌ Error', 'Could not load temperature data.');
       }
     };
 
-    fetchPatientData();
+    fetchTempData();
+  }, [selectedDate, id, storedThreshold]);
+
+  useEffect(() => {
+    axios
+      .get(`http://192.168.0.106:8000/patient/${id}`)
+      .then(res => setPatientInfo(res.data.patient))
+      .catch(err => console.error('Patient fetch failed:', err))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  const displayData = tempData.length > 0 ? tempData : dummyData;
-  const temps = displayData.map(d => d.temp);
-  const avg = temps.length > 0 ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : 'N/A';
-  const max = temps.length > 0 ? Math.max(...temps) : 'N/A';
-  const min = temps.length > 0 ? Math.min(...temps) : 'N/A';
+  // ... your render code below remains unchanged ...
 
   if (loading || !patientInfo) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.loading}>
         <ActivityIndicator size="large" color="#007ACC" />
       </View>
     );
   }
 
+  const temps = tempData.map(d => d.temp);
+  const avg = temps.length ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : 'N/A';
+  const max = temps.length ? Math.max(...temps) : 'N/A';
+  const min = temps.length ? Math.min(...temps) : 'N/A';
+
+  const prevDisabled = !availableDates.includes(
+    new Date(new Date(selectedDate).setDate(selectedDate.getDate() - 1)).toDateString()
+  );
+
+  const nextDisabled = !availableDates.includes(
+    new Date(new Date(selectedDate).setDate(selectedDate.getDate() + 1)).toDateString()
+  );
+
   return (
     <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.safeArea}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <StatusBar backgroundColor="#007ACC" barStyle="light-content" />
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" />
+
         <View style={styles.header}>
           <Text style={styles.headerText}>Patient Report</Text>
         </View>
 
-        <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>👤 Patient Details</Text>
+        <View style={styles.infoBox}>
+          <Text style={styles.sectionTitle}>👤 Patient</Text>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Name:</Text>
             <Text style={styles.value}>{patientInfo.name}</Text>
@@ -88,63 +231,86 @@ export default function PatientDetail({ route, navigation }) {
             <Text style={styles.label}>Disease:</Text>
             <Text style={styles.value}>{patientInfo.disease}</Text>
           </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>High Temp (°F):</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. 100.4"
+              keyboardType="numeric"
+              value={threshold} // 👈 This shows the current threshold in the input
+              onChangeText={setThreshold}
+              onSubmitEditing={saveThreshold}
+            />
+
+          </View>
+          <TouchableOpacity style={styles.saveBtn} onPress={saveThreshold}>
+            <Text style={styles.saveText}>Save High Temerature</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.card}>
+        <View style={styles.chartBox}>
           <Text style={styles.sectionTitle}>🩺 Temperature Chart</Text>
+
+          <View style={styles.navRow}>
+            <TouchableOpacity onPress={() => changeDate(-1)} disabled={prevDisabled}>
+              <Text style={[styles.navArrow, prevDisabled && styles.disabled]}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.dateText}>{selectedDate.toDateString()}</Text>
+            <TouchableOpacity onPress={() => changeDate(1)} disabled={nextDisabled}>
+              <Text style={[styles.navArrow, nextDisabled && styles.disabled]}>→</Text>
+            </TouchableOpacity>
+          </View>
 
           <LineChart
             data={{
-              labels: displayData.map(d => d.time),
-              datasets: [{ data: temps }]
+              labels: tempData.map(d => d.time),
+              datasets: [{ data: temps }],
             }}
             width={wp('90%')}
             height={hp('35%')}
             yAxisSuffix="°F"
             fromZero
             chartConfig={{
-              backgroundGradientFrom: '#ffffff',
+              backgroundGradientFrom: '#fff',
               backgroundGradientTo: '#f2f2f2',
               decimalPlaces: 1,
               color: (opacity = 1) => `rgba(0, 122, 204, ${opacity})`,
               labelColor: () => '#333',
-              propsForDots: {
-                r: '6',
-                strokeWidth: '2',
-                stroke: '#007ACC'
-              }
+              propsForDots: { r: '6', strokeWidth: '2', stroke: '#007ACC' },
             }}
             bezier
             style={styles.chart}
           />
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryText}>Avg: {avg}°F</Text>
-            <Text style={styles.summaryText}>Max: {max}°F</Text>
-            <Text style={styles.summaryText}>Min: {min}°F</Text>
+            <Text style={styles.summary}>Avg: {avg}°F</Text>
+            <Text style={styles.summary}>Max: {max}°F</Text>
+            <Text style={styles.summary}>Min: {min}°F</Text>
           </View>
         </View>
 
-        <View style={styles.actionsRow}>
+        <View style={styles.actions}>
           <TouchableOpacity
-            style={styles.actionButton}
+            style={styles.actionBtn}
             onPress={() => {
-              if (patientInfo?.phone) {
-                Linking.openURL(`tel:${patientInfo.phone}`);
-              } else {
-                alert('Phone number not available');
-              }
+              if (patientInfo.phone) Linking.openURL(`tel:${patientInfo.phone}`);
+              else Alert.alert('📵 No phone number');
             }}
           >
             <Text style={styles.actionIcon}>📞</Text>
             <Text style={styles.actionLabel}>Call</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('PrescriptionScreen', { id })}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('PrescriptionScreen', { id })}
+          >
             <Text style={styles.actionIcon}>💊</Text>
             <Text style={styles.actionLabel}>Presc</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('NotesScreen', { id })}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('NotesScreen', { id })}
+          >
             <Text style={styles.actionIcon}>📝</Text>
             <Text style={styles.actionLabel}>Notes</Text>
           </TouchableOpacity>
@@ -155,99 +321,57 @@ export default function PatientDetail({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
+  header: { paddingVertical: hp('1.5%'), backgroundColor: '#007ACC' },
+  headerText: { color: '#fff', fontSize: RFValue(18), fontWeight: 'bold', textAlign: 'center' },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  infoBox: {
+    backgroundColor: '#fff',
+    margin: wp('2%'),
+    padding: wp('3%'),
+    borderRadius: 10,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
+  sectionTitle: { fontSize: RFValue(16), fontWeight: 'bold', marginBottom: hp('1%') },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: hp('1%') },
+  label: { fontWeight: '600', fontSize: RFValue(14) },
+  value: { fontSize: RFValue(14) },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    width: wp('20%'),
+    padding: wp('1%'),
+    textAlign: 'center',
+    borderRadius: 6,
   },
-  header: {
-    backgroundColor: '#3a8dde',
-    paddingVertical: hp('2.5%'),
+  saveBtn: {
+    marginTop: hp('1%'),
+    backgroundColor: '#007ACC',
+    paddingVertical: hp('1%'),
+    borderRadius: 8,
     alignItems: 'center',
-    elevation: 4
   },
-  headerText: {
-    color: '#fff',
-    fontSize: RFValue(18),
-    fontWeight: 'bold'
+  saveText: { color: '#fff', fontWeight: '600' },
+  chartBox: {
+    backgroundColor: '#fff',
+    margin: wp('2%'),
+    padding: wp('3%'),
+    borderRadius: 10,
   },
-  sectionTitle: {
-    fontSize: RFValue(16),
-    fontWeight: '700',
-    marginBottom: hp('2%'),
-    color: '#007ACC'
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: wp('5%'),
-    marginTop: hp('2%'),
-    padding: wp('4%'),
-    borderRadius: 12,
-    elevation: 3,
-    alignItems: 'center'
-  },
-  chart: {
-    borderRadius: 12
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: wp('80%'),
-    marginTop: hp('2%')
-  },
-  summaryText: {
-    fontSize: RFValue(14),
-    fontWeight: '600',
-    color: '#444'
-  },
-  infoCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: wp('5%'),
-    padding: wp('4%'),
-    borderRadius: 12,
-    elevation: 2,
-    marginTop: hp('2%')
-  },
-  infoRow: {
-    flexDirection: 'row',
-    marginBottom: hp('1%')
-  },
-  label: {
-    fontWeight: '600',
-    color: '#333',
-    width: wp('35%'),
-    fontSize: RFValue(14)
-  },
-  value: {
-    color: '#444',
-    fontSize: RFValue(14)
-  },
-  actionsRow: {
+  navRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: hp('1%') },
+  navArrow: { fontSize: RFValue(22), marginHorizontal: wp('5%') },
+  disabled: { opacity: 0.3 },
+  dateText: { fontSize: RFValue(14), fontWeight: '600' },
+  chart: { marginVertical: hp('1%'), borderRadius: 8 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: hp('1%') },
+  summary: { fontSize: RFValue(12), fontWeight: '600' },
+  actions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: hp('3%'),
-    width: wp('85%'),
-    alignSelf: 'center'
+    marginTop: hp('1%'),
+    paddingBottom: hp('2%'),
   },
-  actionButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: wp('18%'),
-    height: wp('18%'),
-    borderRadius: wp('9%'),
-    backgroundColor: '#e6f2ff',
-    elevation: 3
-  },
-  actionIcon: {
-    fontSize: RFValue(20)
-  },
-  actionLabel: {
-    fontSize: RFValue(10),
-    marginTop: 4,
-    color: '#007ACC',
-    fontWeight: '600'
-  }
+  actionBtn: { alignItems: 'center' },
+  actionIcon: { fontSize: RFValue(24), backgroundColor: '#fff', padding: '20', borderRadius: '50%' },
+  actionLabel: { fontSize: RFValue(12), marginTop: hp('0.5%') },
 });

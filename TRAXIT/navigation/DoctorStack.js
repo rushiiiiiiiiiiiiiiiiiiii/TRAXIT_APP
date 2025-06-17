@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { CommonActions } from '@react-navigation/native';
+
 import {
   View,
   Text,
@@ -27,7 +29,7 @@ export default function DoctorStack({ navigation }) {
           Alert.alert('Error', 'User ID not found');
           return;
         }
-        const result = await axios.get(`http://192.168.0.107:8000/getdoc/${id}`);
+        const result = await axios.get(`http://192.168.0.106:8000/getdoc/${id}`);
         if (result.data.success) {
           setData(result.data.data);
         } else {
@@ -54,6 +56,16 @@ export default function DoctorStack({ navigation }) {
       <Text style={styles.cardText}>{label}</Text>
     </TouchableOpacity>
   );
+
+  const logout = async () => {
+    await AsyncStorage.multiRemove(['Role', 'userid']);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'RoleSelection' }],
+      })
+    );
+  };
 
   return (
     <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.container}>
@@ -93,6 +105,8 @@ export default function DoctorStack({ navigation }) {
               label="Add Patient"
               onPress={() => navigation.navigate('AddPatient')}
             />
+
+    
             {/* Optional Feature */}
             {/* <CardButton
               icon="bar-chart-outline"

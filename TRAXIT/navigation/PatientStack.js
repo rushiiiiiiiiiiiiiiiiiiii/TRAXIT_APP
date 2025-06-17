@@ -14,7 +14,7 @@ export default function PatientDashboard({ navigation }) {
     const getProfile = async () => {
       const id = await AsyncStorage.getItem('userid');
       try {
-        const result = await axios.get(`http://192.168.0.107:8000/getpat/${id}`);
+        const result = await axios.get(`http://192.168.0.106:8000/getpat/${id}`);
         if (result.data.success) {
           setData(result.data.data);
           console.log(result.data?.data)

@@ -39,7 +39,7 @@ export default function AddPatient({ navigation }) {
           setLoading(true);
           try {
             const doctorId = await AsyncStorage.getItem('userid');
-            const response = await axios.post('http://192.168.0.107:8000/adddrcode', {
+            const response = await axios.post('http://192.168.0.106:8000/adddrcode', {
               doctorId,
               code,
             });

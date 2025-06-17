@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
+  handleNotification: async () => ({ 
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
@@ -33,7 +33,7 @@ const intervals = [
   { label: '1 Hour', seconds: 3600 },
 ];
 
-export default function ReminderScreen() {
+export default function() {
   const [intervalSeconds, setIntervalSeconds] = useState(1800);
   const [showIntervalModal, setShowIntervalModal] = useState(false);
   const [key, setKey] = useState(0);

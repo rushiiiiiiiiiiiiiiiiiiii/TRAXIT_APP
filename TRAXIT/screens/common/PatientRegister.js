@@ -20,7 +20,7 @@ export default function PatientRegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     try {
-      const res = await axios.post('http://192.168.0.107:8000/patreg', form);
+      const res = await axios.post('http://192.168.0.106:8000/patreg', form);
       console.log(res.data);
       if (res.data.success) {
         // await AsyncStorage.setItem('userRole', 'Patient');

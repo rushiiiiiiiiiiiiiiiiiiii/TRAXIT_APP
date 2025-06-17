@@ -28,11 +28,16 @@
 import React from 'react';
 import { AuthProvider } from './context/AuthContext';
 import AppNavigator from './navigation/AppNavigator';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 
 export default function App() {
   return (
     <AuthProvider>
-      <AppNavigator />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+            <AppNavigator />
+
+    </GestureHandlerRootView>
     </AuthProvider>
   );
 }

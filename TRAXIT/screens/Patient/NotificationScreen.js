@@ -19,7 +19,7 @@ const NotificationScreen = () => {
     const fetchPrescriptions = async () => {
         const id = await AsyncStorage.getItem('userid');
         try {
-            const res = await fetch(`http://192.168.0.107:8000/getprescriptions/${id}`);
+            const res = await fetch(`http://192.168.0.106:8000/getprescriptions/${id}`);
             const data = await res.json();
             if (data.success) {
                 setPrescriptions(data.prescriptions);

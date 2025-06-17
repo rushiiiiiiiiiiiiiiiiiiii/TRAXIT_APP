@@ -24,7 +24,7 @@ export default function PatientList({ navigation }) {
     const getPatients = async () => {
       try {
         const id = await AsyncStorage.getItem('userid');
-        const result = await axios.post(`http://192.168.0.107:8000/getdrpat/${id}`);
+        const result = await axios.post(`http://192.168.0.106:8000/getdrpat/${id}`);
         if (result.data.success) {
           setData(result.data.data);
           setFiltered(result.data.data);

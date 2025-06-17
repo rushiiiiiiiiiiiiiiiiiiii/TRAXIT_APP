@@ -33,8 +33,8 @@ export default function ProfileScreen({ navigation }) {
 
         const url =
           role === 'patient'
-            ? `http://192.168.0.107:8000/getpat/${id}`
-            : `http://192.168.0.107:8000/getdoc/${id}`;
+            ? `http://192.168.0.106:8000/getpat/${id}`
+            : `http://192.168.0.106:8000/getdoc/${id}`;
 
         const response = await axios.get(url);
 
@@ -42,7 +42,7 @@ export default function ProfileScreen({ navigation }) {
           const baseData = { ...response.data.data, role };
 
           if (role === 'patient' && baseData.drid) {
-            const doctorRes = await axios.get(`http://192.168.0.107:8000/getdoc/${baseData.drid}`);
+            const doctorRes = await axios.get(`http://192.168.0.106:8000/getdoc/${baseData.drid}`);
             baseData.doctorName = doctorRes.data.success
               ? doctorRes.data.data.name
               : 'Unknown Doctor';
@@ -66,6 +66,13 @@ export default function ProfileScreen({ navigation }) {
     patient: ['#11998e', '#38ef7d'],
     doctor: ['#4facfe', '#00f2fe'],
   };
+  function getInitials(name = '') {
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) {
+      return parts[0][0].toUpperCase();
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
 
   const logout = async () => {
     await AsyncStorage.multiRemove(['Role', 'userid']);
@@ -79,7 +86,7 @@ export default function ProfileScreen({ navigation }) {
 
   if (loading || !data) {
     return (
-      <LinearGradient colors={role=="patient"?['#11998e', '#38ef7d'] : ['#4facfe', '#00f2fe']} style={styles.container}>
+      <LinearGradient colors={role == "patient" ? ['#11998e', '#38ef7d'] : ['#4facfe', '#00f2fe']} style={styles.container}>
         <StatusBar barStyle="light-content" />
         <ActivityIndicator size="large" color="#fff" style={{ marginTop: 100 }} />
         <Text style={{ color: '#fff', textAlign: 'center', marginTop: 20 }}>
@@ -94,10 +101,14 @@ export default function ProfileScreen({ navigation }) {
       <StatusBar barStyle="light-content" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <Image
-            source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
-            style={styles.avatar}
-          />
+          <View style={[
+            styles.initialsCircle,
+            { backgroundColor: role === 'patient' ? '#2e7d32' : '#1565c0' } 
+          ]}>
+
+            <Text style={styles.initialsText}>{getInitials(data.name)}</Text>
+          </View>
+
           <Text style={styles.name}>{data.name}</Text>
           <Text style={styles.role}>{data.role}</Text>
 
@@ -234,4 +245,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
+  initialsCircle: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    marginBottom: 18,
+    backgroundColor: '#00bcd4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+  },
+  initialsText: {
+    fontSize: 36,
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+
 });

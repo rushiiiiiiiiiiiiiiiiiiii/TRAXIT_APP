@@ -30,7 +30,7 @@ export default function DoctorLoginScreen({ navigation }) {
   const handleLogin = async () => {
     const role = await AsyncStorage.getItem('Role')
     try {
-      const result = await axios.post("http://192.168.0.107:8000/doclog", {
+      const result = await axios.post("http://192.168.0.106:8000/doclog", {
         phone,
         password,
       });
