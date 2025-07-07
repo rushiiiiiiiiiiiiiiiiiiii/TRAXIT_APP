@@ -15,6 +15,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { backendUrl } from '@env'; 
 
 export default function DoctorLoginScreen({ navigation }) {
   const [phone, setPhone] = useState('');
@@ -27,10 +28,11 @@ export default function DoctorLoginScreen({ navigation }) {
     }
   }, [])
 
+  console.log(backendUrl) 
   const handleLogin = async () => {
     const role = await AsyncStorage.getItem('Role')
     try {
-      const result = await axios.post("http://192.168.0.106:8000/doclog", {
+      const result = await axios.post(`${backendUrl}/doclog`, {
         phone,
         password,
       });

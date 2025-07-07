@@ -19,6 +19,7 @@ import {
 } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
+ import { backendUrl } from '@env'; 
 
 export default function NotesScreen() {
   const [note, setNote] = useState('');
@@ -38,7 +39,7 @@ export default function NotesScreen() {
 
   const fetchNotes = async (id) => {
     try {
-      const response = await fetch(`http://192.168.0.106:8000/getnotes/${id}`);
+      const response = await fetch(`${backendUrl}/getnotes/${id}`);
       const data = await response.json();
       if (data.success) {
         setNotesList(data.notes);
@@ -66,7 +67,7 @@ export default function NotesScreen() {
         note: note.trim(),
       };
 
-      await fetch('http://192.168.0.106:8000/savenote', {
+      await fetch(`${backendUrl}/savenote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

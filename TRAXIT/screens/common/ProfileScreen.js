@@ -14,11 +14,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { backendUrl } from '@env'; 
 
 export default function ProfileScreen({ navigation }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState('');
+
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -33,8 +35,8 @@ export default function ProfileScreen({ navigation }) {
 
         const url =
           role === 'patient'
-            ? `http://192.168.0.106:8000/getpat/${id}`
-            : `http://192.168.0.106:8000/getdoc/${id}`;
+            ? `${backendUrl}/getpat/${id}`
+            : `${backendUrl}/getdoc/${id}`;
 
         const response = await axios.get(url);
 
@@ -42,7 +44,7 @@ export default function ProfileScreen({ navigation }) {
           const baseData = { ...response.data.data, role };
 
           if (role === 'patient' && baseData.drid) {
-            const doctorRes = await axios.get(`http://192.168.0.106:8000/getdoc/${baseData.drid}`);
+            const doctorRes = await axios.get(`${backendUrl}/getdoc/${baseData.drid}`);
             baseData.doctorName = doctorRes.data.success
               ? doctorRes.data.data.name
               : 'Unknown Doctor';

@@ -7,6 +7,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import Constants from 'expo-constants';
 
 export default function PatientRegisterScreen({ navigation }) {
   const [form, setForm] = useState({
@@ -17,10 +18,12 @@ export default function PatientRegisterScreen({ navigation }) {
   const handleChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
+  
+  
 
   const handleRegister = async () => {
     try {
-      const res = await axios.post('http://192.168.0.106:8000/patreg', form);
+      const res = await axios.post(`${backendUrl}/patreg`, form);
       console.log(res.data);
       if (res.data.success) {
         // await AsyncStorage.setItem('userRole', 'Patient');

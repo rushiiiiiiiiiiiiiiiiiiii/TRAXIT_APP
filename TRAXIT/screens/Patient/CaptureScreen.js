@@ -17,6 +17,7 @@ import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+ import { backendUrl } from '@env'; 
 
 export default function CaptureScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -166,7 +167,7 @@ export default function CaptureScreen() {
   const sendtodb = async () => {
     const userid = await AsyncStorage.getItem('userid')
     try {
-      const result = await axios.post('http://192.168.0.106:8000/addtemp', { userid, temperature })
+      const result = await axios.post(`${backendUrl}/addtemp`, { userid, temperature })
       console.log(result.data)
       Alert.alert("Temperature Sended Succsesully")
     }

@@ -11,6 +11,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+ import { backendUrl } from '@env'; 
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -52,7 +53,7 @@ export default function PatientDetail({ route, navigation }) {
   //   // Alert.alert('🚨 High Temperature Alert', `Today's temperature exceeded the threshold of ${thresholdValue}°F!`);
 
   //   try {
-  //     await axios.post('http://192.168.0.106:8000/notifyDoctor', {
+  //     await axios.post('${backendUrl}/notifyDoctor', {
   //       patientId: id,
   //       threshold: thresholdValue,
   //       date: formatDate(new Date()),
@@ -135,7 +136,7 @@ export default function PatientDetail({ route, navigation }) {
     registerForPushNotificationsAsync();
     loadThreshold();
     axios
-      .get(`http://192.168.0.106:8000/getavailabledates/${id}`)
+      .get(`${backendUrl}/getavailabledates/${id}`)
       .then(res => {
         if (res.data.success) {
           setAvailableDates(res.data.dates.map(d => new Date(d).toDateString()));
@@ -148,7 +149,7 @@ export default function PatientDetail({ route, navigation }) {
     const fetchTempData = async () => {
       try {
         const dateStr = formatDate(selectedDate);
-        const res = await axios.get(`http://192.168.0.106:8000/gettempdata/${id}?date=${dateStr}`);
+        const res = await axios.get(`${backendUrl}/gettempdata/${id}?date=${dateStr}`);
         const raw = res.data.data || [];
         const processed = raw.map(e => ({
           time: new Date(e.timestamp).toLocaleTimeString([], {
@@ -179,7 +180,7 @@ export default function PatientDetail({ route, navigation }) {
 
   useEffect(() => {
     axios
-      .get(`http://192.168.0.106:8000/patient/${id}`)
+      .get(`${backendUrl}/patient/${id}`)
       .then(res => setPatientInfo(res.data.patient))
       .catch(err => console.error('Patient fetch failed:', err))
       .finally(() => setLoading(false));

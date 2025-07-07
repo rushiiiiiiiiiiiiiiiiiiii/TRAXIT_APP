@@ -17,6 +17,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRoute } from '@react-navigation/native'
 
+ import { backendUrl } from '@env'; 
 
 export default function PrescriptionScreen() {
   const [inputText, setInputText] = useState('');
@@ -56,7 +57,7 @@ export default function PrescriptionScreen() {
 
 
       // Replace URL with your backend endpoint
-      await fetch('http://192.168.0.106:8000/saveprescription', {
+      await fetch(`${backendUrl}/saveprescription`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

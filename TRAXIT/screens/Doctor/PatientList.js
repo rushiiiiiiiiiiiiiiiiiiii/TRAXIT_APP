@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { AntDesign } from '@expo/vector-icons';
+ import { backendUrl } from '@env'; 
 
 export default function PatientList({ navigation }) {
   const [data, setData] = useState([]);
@@ -24,7 +25,7 @@ export default function PatientList({ navigation }) {
     const getPatients = async () => {
       try {
         const id = await AsyncStorage.getItem('userid');
-        const result = await axios.post(`http://192.168.0.106:8000/getdrpat/${id}`);
+        const result = await axios.post(`${backendUrl}/getdrpat/${id}`);
         if (result.data.success) {
           setData(result.data.data);
           setFiltered(result.data.data);

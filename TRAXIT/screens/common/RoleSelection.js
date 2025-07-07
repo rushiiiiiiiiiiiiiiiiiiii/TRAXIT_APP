@@ -13,12 +13,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function RoleSelection({ navigation }) {
   const setPatientRole = async () => {
     await AsyncStorage.setItem('Role', 'patient');
-    navigation.replace('PatientLogin');
+    navigation.navigate('PatientLogin');
   };
 
   const setDoctorRole = async () => {
     await AsyncStorage.setItem('Role', 'doctor');
-    navigation.replace('DoctorLogin');
+    navigation.navigate('DoctorLogin');
   };
 
   return (

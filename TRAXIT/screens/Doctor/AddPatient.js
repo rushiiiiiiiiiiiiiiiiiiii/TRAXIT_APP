@@ -6,11 +6,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+ import { backendUrl } from '@env'; 
 
 export default function AddPatient({ navigation }) {
   const [code, setCode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isCodeSent, setIsCodeSent] = useState(false);
+
 
   const generateCode = () => {
     const newCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -39,7 +41,7 @@ export default function AddPatient({ navigation }) {
           setLoading(true);
           try {
             const doctorId = await AsyncStorage.getItem('userid');
-            const response = await axios.post('http://192.168.0.106:8000/adddrcode', {
+            const response = await axios.post(`${backendUrl}/adddrcode`, {
               doctorId,
               code,
             });

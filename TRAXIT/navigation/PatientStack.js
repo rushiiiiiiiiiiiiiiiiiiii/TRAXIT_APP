@@ -6,15 +6,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { backendUrl } from '@env'; 
 
 export default function PatientDashboard({ navigation }) {
   const [data, setData] = useState(null);
+  
 
   useEffect(() => {
     const getProfile = async () => {
       const id = await AsyncStorage.getItem('userid');
       try {
-        const result = await axios.get(`http://192.168.0.106:8000/getpat/${id}`);
+        const result = await axios.get(`${backendUrl}/getpat/${id}`);
         if (result.data.success) {
           setData(result.data.data);
           console.log(result.data?.data)

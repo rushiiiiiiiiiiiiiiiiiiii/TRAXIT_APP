@@ -16,10 +16,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { backendUrl } from '@env'; 
 
 export default function DoctorStack({ navigation }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     const getProfile = async () => {
@@ -29,7 +31,7 @@ export default function DoctorStack({ navigation }) {
           Alert.alert('Error', 'User ID not found');
           return;
         }
-        const result = await axios.get(`http://192.168.0.106:8000/getdoc/${id}`);
+        const result = await axios.get(`${backendUrl}/getdoc/${id}`);
         if (result.data.success) {
           setData(result.data.data);
         } else {
