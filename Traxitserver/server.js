@@ -1,11 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const conn = require('./Conn');
-
+require('dotenv').config();
 const app = express();
 app.use(express.json());
 app.use(cors());
-
+const PORT = process.env.PORT
 // ---------------------- Patient Registration ----------------------
 app.post('/patreg', (req, res) => {
   const { name, phone, age, password, disease, drcode } = req.body;
@@ -221,7 +221,10 @@ app.get('/getavailabledates/:userid', (req, res) => {
 });
 
 // ---------------------- Start Server ----------------------
-app.listen(8000, () => {
+// app.listen(PORT, () => {
+//   console.log('🚀 Server running on PORT 8000');
+// });
+ app.listen(8000, () => {
   console.log('🚀 Server running on PORT 8000');
 });
  

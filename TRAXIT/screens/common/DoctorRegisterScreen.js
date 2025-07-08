@@ -20,7 +20,7 @@ export default function DoctorRegisterScreen({ navigation }) {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-
+  console.log(backendUrl                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                )
   const handleRegister = async () => {
     try {
       const res = await axios.post(`${backendUrl}/docreg`, form);

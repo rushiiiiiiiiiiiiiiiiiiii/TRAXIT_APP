@@ -9,12 +9,16 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/vector-icons": "^13.0.0",
+    "cors": "^2.8.5",
     "expo": "~50.0.16",
     "expo-camera": "~14.1.1",
+    "express": "^5.1.0",
+    "multer": "^2.0.1",
+    "mysql": "^2.18.1",
     "react": "18.2.0",
     "react-native": "0.73.7",
-    "react-native-svg": "14.1.0",
-    "@expo/vector-icons": "^13.0.0"
+    "react-native-svg": "14.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
